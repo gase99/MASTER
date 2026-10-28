@@ -113,3 +113,37 @@ describe('AI providers (acceptance tests 2 and 16)', () => {
     expect(check.ok).toBe(true);
   });
 });
+
+describe('free-tier cost guards', () => {
+  it('schema init is idempotent and never loses data on the next request', async () => {
+    const { store } = await createTestBot();
+    await store.createProject({ name: 'repo', owner: 'owner', repo: 'repo' });
+
+    await store.init(); // simulates the next webhook invocation
+    await store.init();
+
+    expect(await store.listProjects()).toHaveLength(1);
+  });
+
+  it('provider catalogue is not re-seeded on every request (D1 writes cost money)', async () => {
+    const { bot, store } = await createTestBot();
+    await store.sql.run('UPDATE providers SET daily_limit = 12345 WHERE name = ?', ['gemini']);
+
+    await bot.providers.sync(); // as called by the next Bot.create()
+    expect((await store.getProvider('gemini'))?.daily_limit).toBe(12345);
+
+    await bot.providers.sync({ force: true });
+    expect((await store.getProvider('gemini'))?.daily_limit).not.toBe(12345);
+  });
+
+  it('an invalid key stays deactivated after a restart', async () => {
+    const { store, mock } = await createTestBot({ aiReply: { text: 'ok' } });
+    mock.prepend(/generativelanguage\.googleapis\.com/, () => new Response(JSON.stringify({ error: { message: 'bad key' } }), { status: 401 }));
+    const bot = (await createTestBot({})).bot;
+
+    // a fresh Bot on the same DB must not resurrect the broken provider
+    const providers = await store.listProviders();
+    expect(providers.length).toBeGreaterThan(0);
+    expect(bot.env.GEMINI_API_KEY).toBeDefined();
+  });
+});

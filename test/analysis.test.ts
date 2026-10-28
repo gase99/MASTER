@@ -28,7 +28,7 @@ describe('analysis engine and plan report (acceptance tests 5, 9)', () => {
     const withKeyboard = telegram.messages.filter((message) => message.replyMarkup).pop();
     const markup = withKeyboard?.replyMarkup as { inline_keyboard: Array<Array<{ text: string; callback_data: string }>> };
     expect(markup.inline_keyboard[0]![0]!.text).toContain('تأیید و شروع');
-    expect(markup.inline_keyboard[0]![0]!.callback_data).toMatch(/^plan\|req_\w+\|1\|approve\|[\w-]+\.[\w-]+$/);
+    expect(markup.inline_keyboard[0]![0]!.callback_data).toMatch(/^plan\|req_[\w-]+\|1\|approve\|[\w-]+\.[\w-]+$/);
 
     // nothing was written to the repository yet
     expect(github.commits).toHaveLength(0);

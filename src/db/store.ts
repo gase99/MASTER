@@ -26,7 +26,16 @@ export interface NewJob {
 export class Store {
   constructor(public readonly sql: Sql) {}
 
+  /**
+   * Create the schema if it is missing. Running the full DDL on every webhook
+   * would burn D1's free row-write budget for nothing, so it is a cheap probe
+   * first.
+   */
   async init(): Promise<void> {
+    const existing = await this.sql.get<{ name: string }>(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'projects'",
+    );
+    if (existing) return;
     await this.sql.exec(SCHEMA_SQL);
   }
 

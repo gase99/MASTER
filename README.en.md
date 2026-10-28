@@ -13,7 +13,7 @@ Actions). No paid service is a hard dependency.
 
 | Area | State | Evidence |
 |---|---|---|
-| Bot skeleton, Persian menu, 19 commands | ✅ | 83 automated tests (mocked Telegram) |
+| Bot skeleton, Persian menu, 19 commands | ✅ | 86 automated tests (mocked Telegram) |
 | Owner auth + rate limiting | ✅ | tests: stranger, forged callback, burst |
 | SQLite-compatible schema (15 tables) on D1/SQLite | ✅ | persistence test across restart |
 | Multi-provider AI manager (Gemini/Groq/OpenRouter/DeepSeek/OpenAI/Anthropic) | ✅ | tests with HTTP mock |
@@ -60,6 +60,6 @@ Docs: [`docs/setup-telegram.md`](docs/setup-telegram.md) ·
 ## Tests
 
 ```bash
-npm test          # 83 tests: unit, integration, end-to-end (mocked HTTP)
+npm test          # 86 tests: unit, integration, end-to-end (mocked HTTP)
 npm run typecheck
 ```

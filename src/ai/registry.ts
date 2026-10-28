@@ -43,7 +43,13 @@ export class ProviderManager {
   }
 
   /** Seed/refresh provider rows from the catalogue + available env keys. */
-  async sync(): Promise<void> {
+  async sync(options: { force?: boolean } = {}): Promise<void> {
+    const existing = await this.store.listProviders();
+    const hasActive = existing.some((row) => row.active === 1 && this.keyFor(row.name));
+    // Re-seeding on every webhook would cost D1 writes; only do it when the
+    // catalogue changed, an installation is missing, or it is forced.
+    if (!options.force && existing.length >= PROVIDER_CATALOG.length && hasActive) return;
+
     for (const definition of PROVIDER_CATALOG) {
       const hasKey = Boolean(this.keyFor(definition.name));
       const existing = await this.store.getProvider(definition.name);
